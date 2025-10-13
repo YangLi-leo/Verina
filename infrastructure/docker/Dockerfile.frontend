@@ -5,21 +5,21 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 
-# Copy dependency manifests
-COPY package.json package-lock.json* pnpm-lock.yaml* ./
+# Install pnpm globally
+RUN npm install -g pnpm@latest
 
-# Install dependencies
-RUN if [ -f pnpm-lock.yaml ]; then \
-      npm install -g pnpm && pnpm install --frozen-lockfile; \
-    elif [ -f package-lock.json ]; then \
-      npm ci; \
-    else \
-      npm install; \
-    fi
+# Copy dependency manifests
+COPY package.json pnpm-lock.yaml* ./
+
+# Install dependencies with pnpm
+RUN pnpm install --frozen-lockfile
 
 # Stage 2: Builder
 FROM node:20-alpine AS builder
 WORKDIR /app
+
+# Install pnpm for build
+RUN npm install -g pnpm@latest
 
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
@@ -28,7 +28,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Build Next.js application for production
-RUN npm run build
+RUN pnpm run build
 
 # Stage 3: Runner (production image)
 FROM node:20-alpine AS runner
