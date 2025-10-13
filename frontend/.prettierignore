@@ -1,0 +1,24 @@
+# Dependencies
+node_modules
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Build outputs
+.next
+out
+dist
+build
+
+# Generated files
+*.tsbuildinfo
+next-env.d.ts
+
+# Environment files
+.env
+.env.*
+
+# Other
+.git
+.DS_Store
+coverage

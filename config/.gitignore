@@ -1,0 +1,13 @@
+# Ignore all actual configuration files with secrets
+.env*
+!.env.example
+!env.template
+
+# Ignore any JSON files that might contain secrets
+*.json
+!*.example.json
+
+# Ignore any other sensitive files
+secrets/
+keys/
+credentials/

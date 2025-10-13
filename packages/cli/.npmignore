@@ -1,0 +1,36 @@
+# Source control
+.git/
+.github/
+
+# Environment and config
+.env
+.env.*
+config.json
+
+# Test files
+test/
+tests/
+*.test.js
+*.spec.js
+coverage/
+
+# Development files
+.vscode/
+.idea/
+*.swp
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Documentation
+docs/
+examples/
+
+# CI/CD
+.travis.yml
+.circleci/

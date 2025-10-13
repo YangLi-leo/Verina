@@ -1,0 +1,85 @@
+# Docker Compose configuration for containerized development
+#
+# Usage:
+#   docker compose up --build           Start all services with live reload
+#   docker compose down -v              Stop services and remove volumes (cleans cache)
+#   docker compose logs -f <service>    View service logs
+#
+# Profiles:
+#   - web: Full stack (frontend + backend)
+#   - dev: Backend only
+
+services:
+  # Frontend service - Next.js development server with hot module replacement
+  frontend:
+    profiles: ["web"]
+    build:
+      context: ../../frontend
+      dockerfile: ../infrastructure/docker/Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    volumes:
+      - ../../frontend:/app
+      - /app/node_modules
+      - /app/.next
+    command: npm run dev
+    depends_on:
+      - backend
+    networks:
+      - verina-network
+
+  # Backend service
+  backend:
+    profiles: ["dev", "web"]
+    build:
+      context: ../../backend
+      dockerfile: ../infrastructure/docker/Dockerfile.backend
+    ports:
+      - "8000:8000"
+      - "9222:9222"  # Chrome DevTools Protocol (optional, for debugging)
+    environment:
+      - PYTHONUNBUFFERED=1
+      - NODE_ENV=development
+      - DATA_BASE_DIR=/app/data  # Configure data storage path
+    env_file:
+      - ../../config/.env.development
+    volumes:
+      - ../../backend:/app
+      - backend-data:/app/data  # Store user data in Docker volume (not on host)
+      # This keeps user chat/search history isolated in the container
+      # Use `docker compose down -v` to clear all data
+    # Chrome requires increased shared memory and security settings
+    shm_size: '2gb'  # Increase shared memory for Chrome (default 64MB is too small)
+    security_opt:
+      - seccomp:unconfined  # Allow Chrome to run in container
+    cap_add:
+      - SYS_ADMIN  # Required for Chrome sandbox (can be removed if using --no-sandbox)
+    networks:
+      - verina-network
+
+
+
+  # Nginx reverse proxy (optional)
+  nginx:
+    profiles: ["web"]
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - verina-network
+
+volumes:
+  backend-data:     # Backend user data (chats, searches, workspaces)
+  search-data:      # Legacy: kept for compatibility
+
+networks:
+  verina-network:
+    driver: bridge

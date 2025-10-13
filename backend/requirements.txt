@@ -1,0 +1,26 @@
+# Core dependencies
+httpx>=0.27.0  # For async HTTP requests to OpenRouter API (updated for e2b compatibility)
+tenacity==8.2.3  # For retry logic with exponential backoff
+pydantic[email]>=2.7.0  # Data validation and settings management with email support (updated for MCP)
+pydantic-settings>=2.2.0  # Settings management for pydantic (required by MCP)
+fastapi>=0.115.0  # FastAPI framework (updated for MCP anyio>=4.5 compatibility)
+uvicorn[standard]>=0.30.0  # ASGI server
+
+# MCP (Model Context Protocol) for browser automation tools
+mcp>=1.0.0  # Model Context Protocol client for research mode tools
+
+# Search Engines
+exa-py==1.0.12  # Exa neural search API for LLMs
+
+# Environment and Utilities
+python-dotenv==1.0.0  # Environment variable management
+python-multipart==0.0.7  # Required for FastAPI form handling
+
+# Code Execution Sandbox
+e2b-code-interpreter==2.0.0  # Stateful code execution sandbox for SandboxTool
+
+# Note: These are from Python standard library, no need to install:
+# - asyncio (async/await support)
+# - typing (type hints)
+# - os (environment variables)
+# - pathlib (file paths)

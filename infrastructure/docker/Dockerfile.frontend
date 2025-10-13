@@ -1,0 +1,23 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy dependency manifests
+COPY package.json package-lock.json* pnpm-lock.yaml* ./
+
+# Install dependencies based on available lockfile
+RUN if [ -f pnpm-lock.yaml ]; then \
+      npm install -g pnpm && pnpm install; \
+    elif [ -f package-lock.json ]; then \
+      npm ci; \
+    else \
+      npm install; \
+    fi
+
+# Copy source code
+COPY . .
+
+EXPOSE 3000
+
+# Development server with hot reload
+CMD ["npm", "run", "dev"]

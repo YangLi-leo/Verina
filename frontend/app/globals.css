@@ -1,0 +1,228 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  .font-brand {
+    font-family: var(--font-brand);
+  }
+
+  .font-logo {
+    font-family: var(--font-sans);
+  }
+
+  .search-input {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  input:focus,
+  input:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: rgb(209 213 219) !important;
+  }
+
+  /* Custom scrollbar styles for recommend section and history sidebar */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+    height: 0; /* Hide horizontal scrollbar */
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 2px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 2px;
+    transition: all 0.2s ease;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:active {
+    background: #6b7280;
+  }
+
+  /* Hide scrollbar on mobile for cleaner look */
+  @media (max-width: 768px) {
+    .custom-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .custom-scrollbar {
+      scrollbar-width: none;
+    }
+  }
+
+  /* Added hidden scrollbar utility class for invisible scrolling */
+  .scrollbar-hide {
+    /* Firefox */
+    scrollbar-width: none;
+    /* Safari and Chrome */
+    -ms-overflow-style: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Animation utilities */
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-in {
+    animation: fade-in 0.5s ease-out forwards;
+  }
+
+  /* Added selection circle animation classes for smooth appearance with staggered delays */
+  .selection-circle {
+    opacity: 0;
+    transform: scale(0.8);
+    transition:
+      opacity 200ms ease-out,
+      transform 200ms ease-out;
+  }
+
+  .selection-circle.show {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .selection-circle:nth-child(1) {
+    transition-delay: 0ms;
+  }
+  .selection-circle:nth-child(2) {
+    transition-delay: 50ms;
+  }
+  .selection-circle:nth-child(3) {
+    transition-delay: 100ms;
+  }
+  .selection-circle:nth-child(4) {
+    transition-delay: 150ms;
+  }
+  .selection-circle:nth-child(5) {
+    transition-delay: 200ms;
+  }
+  .selection-circle:nth-child(6) {
+    transition-delay: 250ms;
+  }
+  .selection-circle:nth-child(7) {
+    transition-delay: 300ms;
+  }
+  .selection-circle:nth-child(8) {
+    transition-delay: 350ms;
+  }
+  .selection-circle:nth-child(9) {
+    transition-delay: 400ms;
+  }
+  .selection-circle:nth-child(10) {
+    transition-delay: 450ms;
+  }
+
+  /* Deep Thinking Mode Animations */
+  @keyframes gradient-flow {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  @keyframes pulse-glow {
+    0%,
+    100% {
+      box-shadow:
+        0 0 10px rgba(239, 68, 68, 0.3),
+        0 0 20px rgba(234, 179, 8, 0.2),
+        0 0 30px rgba(34, 197, 94, 0.1);
+    }
+    50% {
+      box-shadow:
+        0 0 20px rgba(239, 68, 68, 0.5),
+        0 0 30px rgba(234, 179, 8, 0.4),
+        0 0 40px rgba(34, 197, 94, 0.3);
+    }
+  }
+
+  .animate-gradient-flow {
+    background-size: 200% 200%;
+    animation: gradient-flow 3s ease infinite;
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-slow {
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.7;
+      transform: scale(1.1);
+    }
+  }
+
+  .animate-pulse-slow {
+    animation: pulse-slow 2s ease-in-out infinite;
+  }
+
+  /* Override main max-width to allow full-width layouts */
+  main {
+    max-width: none !important;
+  }
+}

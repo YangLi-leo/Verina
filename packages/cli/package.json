@@ -1,0 +1,59 @@
+{
+  "name": "verina",
+  "version": "0.1.0",
+  "description": "Intelligent search engine for you",
+  "keywords": [
+    "ai",
+    "research",
+    "search",
+    "llm",
+    "assistant",
+    "cli"
+  ],
+  "homepage": "https://github.com/YangLi-leo/Verina",
+  "bugs": {
+    "url": "https://github.com/YangLi-leo/Verina/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YangLi-leo/Verina.git"
+  },
+  "license": "Apache-2.0",
+  "author": "Li Yang <liyangauthority@gmail.com>",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "verina": "./bin/verina.js"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "echo \"Note: Please test manually with 'verina --help' and 'verina init'\" && exit 0",
+    "postinstall": "node -e \"console.log('\\n✨ Verina CLI installed! Run \\'verina init\\' to configure.')\"",
+    "version": "git add -A",
+    "postversion": "git push && git push --tags"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^11.1.0",
+    "execa": "^8.0.1",
+    "figlet": "^1.7.0",
+    "find-process": "^1.4.7",
+    "fs-extra": "^11.2.0",
+    "gradient-string": "^2.0.2",
+    "open": "^9.1.0",
+    "ora": "^7.0.1",
+    "prompts": "^2.4.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ]
+}
