@@ -13,34 +13,29 @@ Quick answers? Search. Curious about something? Chat. Tough research? Agent.
 
 ---
 
-## 📸 Screenshots
+## 🎥 Fast Mode vs Deep Mode
 
-<div align="center">
-
-### Web Interface
-<img src="docs/images/screenshot-web.png" alt="Verina Web Interface" width="800">
-
-### CLI Interface
-<img src="docs/images/screenshot-cli.png" alt="Verina CLI" width="800">
-
-</div>
+<table>
+  <tr>
+    <td width="50%">
+      <h3 align="center">⚡ Fast Mode</h3>
+      <p align="center"><i>Quick answers in 5 seconds</i></p>
+      <img src="docs/images/demo-fast-mode.gif" alt="Fast Mode Demo" width="100%">
+    </td>
+    <td width="50%">
+      <h3 align="center">🧠 Deep Mode</h3>
+      <p align="center"><i>Extended thinking & multi-perspective analysis</i></p>
+      <img src="docs/images/demo-deep-mode.gif" alt="Deep Mode Demo" width="100%">
+    </td>
+  </tr>
+</table>
 
 ---
 
-## 🎥 Fast Mode vs Deep Mode
+## 📸 CLI Interface
 
 <div align="center">
-
-### ⚡ Fast Mode - Quick Answers (5 seconds)
-<img src="docs/images/demo-fast-mode.gif" alt="Fast Mode Demo" width="800">
-
-*Fast mode: Quick comparison of models*
-
-### 🧠 Deep Mode - Extended Thinking
-<img src="docs/images/demo-deep-mode.gif" alt="Deep Mode Demo" width="800">
-
-*Deep mode: In-depth analysis with multi-perspective search*
-
+<img src="docs/images/screenshot-cli.png" alt="Verina CLI" width="800">
 </div>
 
 ---
