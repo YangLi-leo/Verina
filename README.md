@@ -13,6 +13,20 @@ Quick answers? Search. Curious about something? Chat. Tough research? Agent.
 
 ---
 
+## 📸 Screenshots
+
+<div align="center">
+
+### Web Interface
+<img src="docs/images/screenshot-web.png" alt="Verina Web Interface" width="800">
+
+### CLI Interface
+<img src="docs/images/screenshot-cli.png" alt="Verina CLI" width="800">
+
+</div>
+
+---
+
 ## Why Verina?
 
 **Search → Read → Chat**
