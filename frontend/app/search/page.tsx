@@ -37,6 +37,9 @@ export default function SearchPage() {
   // Ref to prevent automatic mode switching when user manually toggles
   const preventAutoSwitch = useRef(false);
 
+  // Ref to track last URL agent param to avoid sync loops
+  const lastUrlAgentMode = useRef<boolean | null>(null);
+
   // Use search hook (old version - no multi-session support)
   const {
     search: originalSearch,
@@ -123,9 +126,10 @@ export default function SearchPage() {
         setTimeout(() => !isCancelled && setIsChatMode(true), 100);
       }
 
-      // Restore Agent Mode state from URL
-      if (urlAgentMode !== isAgentMode) {
-        logger.log(`[SearchPage] Restoring Agent Mode from URL: ${urlAgentMode}`);
+      // Restore Agent Mode state from URL (only when URL actually changes)
+      if (lastUrlAgentMode.current !== urlAgentMode) {
+        logger.log(`[SearchPage] URL agent mode changed from ${lastUrlAgentMode.current} to ${urlAgentMode}`);
+        lastUrlAgentMode.current = urlAgentMode;
         setIsAgentMode(urlAgentMode);
       }
 
@@ -227,6 +231,9 @@ export default function SearchPage() {
       }
       window.history.replaceState({}, "", url.toString());
       logger.log(`[SearchPage] Updated agent mode in URL: ${isAgentMode}`);
+
+      // Update ref to match URL (prevent Effect 1 from reverting)
+      lastUrlAgentMode.current = isAgentMode;
     }
   }, [isAgentMode]);
 

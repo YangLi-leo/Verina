@@ -491,6 +491,13 @@ export function useChat(initialSessionId?: string | null): UseChatReturn {
       ChatService.cancelOngoingRequest();
       setIsLoading(false);
 
+      // Stop timer and clear all stage indicators
+      setIsHILMode(false);
+      setIsResearchMode(false);
+      setResearchStartTime(null);
+      setResearchElapsedSeconds(0);
+      logger.log("[useChat] Cleared HIL/Research states and timer");
+
       // Clear sending session marker
       if (sendingSessionRef.current === sessionId) {
         sendingSessionRef.current = null;

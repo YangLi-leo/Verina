@@ -123,21 +123,19 @@ export function ChatInterface({
     <>
       <section className="w-[700px] flex-shrink-0" aria-label="Chat interface">
         <div className="flex h-[calc(100vh-81px)] flex-col">
-          <div className="relative flex h-14 items-center justify-center border-b border-gray-100 bg-white px-6">
-            <h2 className="text-base font-medium text-gray-700">Deep Search Chat</h2>
-
-            {/* HIL Planning Stage Indicator */}
+          <div className="relative flex h-14 items-center border-b border-gray-100 bg-white px-6">
+            {/* HIL Planning Stage Indicator - Left Side */}
             {isHILMode && !isResearchMode && (
               <div className="absolute left-6 flex items-center gap-2 text-sm">
                 <div className="flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1">
                   <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500"></div>
                   <span className="font-medium text-blue-700">Planning</span>
                 </div>
-                <span className="text-xs text-gray-500">Analyzing your request</span>
+                <span className="text-xs text-gray-500">Analyzing request</span>
               </div>
             )}
 
-            {/* Research Mode Timer */}
+            {/* Research Mode Timer - Left Side */}
             {isResearchMode && (
               <div className="absolute left-6 flex items-center gap-2 text-sm">
                 <div className="flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1">
@@ -149,6 +147,9 @@ export function ChatInterface({
                 <span className="text-xs text-gray-500">Research in progress</span>
               </div>
             )}
+
+            {/* Title - Centered */}
+            <h2 className="flex-1 text-center text-base font-medium text-gray-700">Deep Search Chat</h2>
 
             <button
               onClick={onNewChat}
