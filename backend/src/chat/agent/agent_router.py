@@ -178,6 +178,12 @@ class AgentRouter:
                 logger.info("[Agent] Auto-reset from Research to HIL after completion")
                 self.agent_mode.reset_to_hil()
 
+        # Force reset to HIL before every Agent Mode request (cleanup from cancellation/errors)
+        # This ensures clean state even after abnormal exits (cancel, error, etc.)
+        if mode == "agent" and self.agent_mode.stage != "hil":
+            logger.info(f"[Agent] Stage cleanup before request: {self.agent_mode.stage} -> hil")
+            self.agent_mode.reset_to_hil()
+
         # Route to appropriate agent
         if mode == "chat":
             logger.info(f"[Router] Routing to Chat Mode Agent")

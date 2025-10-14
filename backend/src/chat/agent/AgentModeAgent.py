@@ -842,6 +842,12 @@ Then, output the complete HTML in a code block like this:
                     logger.error(f"Error in ReAct loop: {e}", exc_info=True)
                     error_msg = f"Error during processing: {str(e)}"
                     message_manager.add_assistant_message(content=error_msg)
+
+                    # Clean workspace on error
+                    if self.workspace_dir and self.workspace_dir.exists():
+                        logger.info("[Agent Error] Cleaning workspace after error")
+                        self._clean_workspace_after_research()
+
                     yield {"type": "error", "data": error_msg}
                     return
 

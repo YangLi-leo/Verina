@@ -2,11 +2,14 @@
  * useChat Hook - Manages chat state and interactions
  * Handles session management, message sending, and real-time streaming
  * Single-session mode: switching sessions cancels ongoing requests
+ *
+ * Refactored v2: Uses separate useAgentStage hook for Agent mode state management
  */
 import { useState, useCallback, useEffect, useRef } from "react";
 import { ChatService } from "@/services/chat";
 import type { ChatResponse, ChatRequest, ChatMessageUI } from "@/types";
 import { logger } from "@/lib/logger";
+import { useAgentStage } from "./useAgentStage";
 
 interface UseChatReturn {
   // State
@@ -52,29 +55,10 @@ export function useChat(initialSessionId?: string | null): UseChatReturn {
   // Ref to track which session is currently sending a message
   const sendingSessionRef = useRef<string | null>(null);
 
-  // Timer state for Agent Mode research phase
-  const [isResearchMode, setIsResearchMode] = useState(false);
-  const [researchStartTime, setResearchStartTime] = useState<number | null>(null);
-  const [researchElapsedSeconds, setResearchElapsedSeconds] = useState(0);
 
-  // Agent Mode HIL (Human-in-Loop) planning stage
-  const [isHILMode, setIsHILMode] = useState(false);
+  // Agent Mode stage management (delegated to useAgentStage hook)
+  const agentStage = useAgentStage();
 
-  /**
-   * Timer effect - Update elapsed seconds every second when in research mode
-   */
-  useEffect(() => {
-    if (!isResearchMode || !researchStartTime) {
-      return;
-    }
-
-    const intervalId = setInterval(() => {
-      const elapsed = Math.floor((Date.now() - researchStartTime) / 1000);
-      setResearchElapsedSeconds(elapsed);
-    }, 1000);
-
-    return () => clearInterval(intervalId);
-  }, [isResearchMode, researchStartTime]);
 
   /**
    * Load session ID from initialSessionId (URL parameter only)
@@ -214,10 +198,13 @@ export function useChat(initialSessionId?: string | null): UseChatReturn {
       setError(null);
       setIsLoading(true);
 
-      // Start HIL mode if Agent Mode
+      // Initialize Agent stage based on mode
       if (mode === "agent") {
-        setIsHILMode(true);
-        logger.log("[useChat] Starting HIL planning stage");
+        agentStage.startHIL();
+        logger.log("[useChat] 🟦 Agent Mode - Starting HIL planning stage");
+      } else {
+        agentStage.reset();
+        logger.log("[useChat] 💬 Chat Mode - Stage reset to idle");
       }
 
       // Mark this session as currently sending
@@ -288,13 +275,10 @@ export function useChat(initialSessionId?: string | null): UseChatReturn {
           // Stage switch (Agent Mode: hil -> research)
           onStageSwitch: stage => {
             if (!isMountedRef.current) return;
-            logger.log("[useChat] Stage switch:", stage);
+            logger.log("[useChat] 🔄 Stage switch:", stage);
             if (stage === "research") {
-              // Exit HIL mode, enter Research mode
-              setIsHILMode(false);
-              setIsResearchMode(true);
-              setResearchStartTime(Date.now());
-              setResearchElapsedSeconds(0);
+              // Transition from HIL to Research
+              agentStage.startResearch();
             }
           },
 
@@ -345,10 +329,8 @@ export function useChat(initialSessionId?: string | null): UseChatReturn {
               setCurrentPromptTokens(response.prompt_tokens);
             }
 
-            // Stop timer and clear stages when response completes
-            setIsHILMode(false);
-            setIsResearchMode(false);
-            setResearchStartTime(null);
+            // Reset Agent stage when response completes
+            agentStage.reset();
 
             // Final update with all metadata
             setMessages(prev =>
@@ -387,10 +369,8 @@ export function useChat(initialSessionId?: string | null): UseChatReturn {
               logger.log("Chat generation cancelled by user");
               setIsLoading(false);
 
-              // Stop timer and clear stages
-              setIsHILMode(false);
-              setIsResearchMode(false);
-              setResearchStartTime(null);
+              // Reset Agent stage
+              agentStage.reset();
 
               // Clear sending session marker
               if (sendingSessionRef.current === sendingSessionId) {
@@ -403,6 +383,9 @@ export function useChat(initialSessionId?: string | null): UseChatReturn {
             // Real errors - log and show to user
             logger.error("Stream error:", errorMsg);
             setError(errorMsg);
+
+            // Reset Agent stage on error
+            agentStage.reset();
 
             // Update message with error
             setMessages(prev =>
@@ -447,10 +430,8 @@ export function useChat(initialSessionId?: string | null): UseChatReturn {
 
         setIsLoading(false);
 
-        // Stop timer and clear stages
-        setIsHILMode(false);
-        setIsResearchMode(false);
-        setResearchStartTime(null);
+        // Reset Agent stage
+        agentStage.reset();
 
         // Clear sending session marker
         if (sendingSessionRef.current === sendingSessionId) {
@@ -459,7 +440,7 @@ export function useChat(initialSessionId?: string | null): UseChatReturn {
         }
       }
     },
-    [sessionId, isLoading]
+    [sessionId, isLoading, agentStage]
   );
 
   /**
@@ -491,12 +472,9 @@ export function useChat(initialSessionId?: string | null): UseChatReturn {
       ChatService.cancelOngoingRequest();
       setIsLoading(false);
 
-      // Stop timer and clear all stage indicators
-      setIsHILMode(false);
-      setIsResearchMode(false);
-      setResearchStartTime(null);
-      setResearchElapsedSeconds(0);
-      logger.log("[useChat] Cleared HIL/Research states and timer");
+      // Reset Agent stage
+      agentStage.reset();
+      logger.log("[useChat] Agent stage reset");
 
       // Clear sending session marker
       if (sendingSessionRef.current === sessionId) {
@@ -504,7 +482,7 @@ export function useChat(initialSessionId?: string | null): UseChatReturn {
         logger.log("[useChat] Cleared sending session marker (stopped)");
       }
     }
-  }, [sessionId]);
+  }, [sessionId, agentStage]);
 
   /**
    * Start a new chat session (clear current and reset sessionId)
@@ -515,13 +493,12 @@ export function useChat(initialSessionId?: string | null): UseChatReturn {
     setSessionId(null);
     setLastResponse(null);
     setError(null);
-    setIsLoading(false); // Reset loading state
-    setCurrentPromptTokens(0); // Clear token count
-    setIsHILMode(false); // Stop HIL mode
-    setIsResearchMode(false); // Stop research mode
-    setResearchStartTime(null); // Clear research timer
-    setResearchElapsedSeconds(0); // Reset elapsed time
-  }, []);
+    setIsLoading(false);
+    setCurrentPromptTokens(0);
+
+    // Reset Agent stage
+    agentStage.reset();
+  }, [agentStage]);
 
   return {
     messages,
@@ -534,9 +511,10 @@ export function useChat(initialSessionId?: string | null): UseChatReturn {
     startNewChat,
     lastResponse,
     currentPromptTokens,
-    isResearchMode,
-    researchElapsedSeconds,
-    isHILMode,
+    // Agent stage state (from useAgentStage hook)
+    isResearchMode: agentStage.isResearchMode,
+    researchElapsedSeconds: agentStage.researchElapsedSeconds,
+    isHILMode: agentStage.isHILMode,
   };
 }
 

@@ -160,7 +160,8 @@ export function ChatInterface({
               <PenSquare className="h-4 w-4" />
             </button>
 
-            {/* Loading Progress Bar - shown when waiting for LLM response */}
+            {/* Loading Progress Bar - shown when waiting for LLM response (Chat Mode only) */}
+            {/* Hide when in Agent Mode stages (HIL/Research have their own indicators) */}
             {isLoading && !isTyping && !isHILMode && !isResearchMode && (
               <div className="absolute bottom-0 left-0 h-0.5 w-full overflow-hidden bg-gray-100">
                 <div className="h-full w-full origin-left animate-pulse bg-gradient-to-r from-transparent via-blue-500 to-transparent"></div>
