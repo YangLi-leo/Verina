@@ -1,15 +1,6 @@
 <div align="center">
 
-```
-██╗   ██╗███████╗██████╗ ██╗███╗   ██╗ █████╗
-██║   ██║██╔════╝██╔══██╗██║████╗  ██║██╔══██╗
-██║   ██║█████╗  ██████╔╝██║██╔██╗ ██║███████║
-╚██╗ ██╔╝██╔══╝  ██╔══██╗██║██║╚██╗██║██╔══██║
- ╚████╔╝ ███████╗██║  ██║██║██║ ╚████║██║  ██║
-  ╚═══╝  ╚══════╝╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝
-```
-
-<img src="docs/images/logo.png" alt="Verina" width="200">
+<img src="docs/images/Verina-logo.png" alt="Verina" width="600">
 
 **Meet Verina! An intelligent search engine for you**
 
