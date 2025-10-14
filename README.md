@@ -17,6 +17,7 @@ Quick answers? Search. Curious about something? Chat. Tough research? Agent.
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue)](https://www.docker.com/)
+[![X](https://img.shields.io/badge/X-@YangLi__leo-000000?logo=x&logoColor=white)](https://x.com/YangLi_leo)
 
 </div>
 
@@ -38,6 +39,13 @@ Quick answers? Search. Curious about something? Chat. Tough research? Agent.
     </td>
   </tr>
 </table>
+
+### 🤖 Agent Mode: Long-Context Research with Visual Reports
+
+<div align="center">
+<img src="docs/images/deep-search-demo-compressed.gif" alt="Agent Mode - 18 minutes deep research" width="80%">
+<p><i>Sustained 18-minute research session generating structured analysis and actionable recommendations</i></p>
+</div>
 
 ---
 
