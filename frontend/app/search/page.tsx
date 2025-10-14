@@ -15,23 +15,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { getRandomKeyword } from "@/lib/constants/loading-keywords";
 import { logger } from "@/lib/logger";
 
-interface SearchPageProps {
-  searchParams?: Promise<{
-    q?: string;
-    sources?: string;
-    deep?: string;
-    search_id?: string;
-    session_id?: string;
-    chat?: string;
-  }>;
-}
-
 /**
  * Search page component that displays search results with sources and Q&A sections
  * Features a responsive layout with fixed header and scrollable content areas
  */
-export default function SearchPage({ searchParams }: SearchPageProps) {
-  // Handle searchParams properly for Next.js 15
+export default function SearchPage() {
+  // Handle URL params properly for client component
   const [query, setQuery] = useState("");
   const [hasValidQuery, setHasValidQuery] = useState(false);
   const router = useRouter();
@@ -101,39 +90,42 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
   const isWaitingForAnswer =
     isLoading || (hasValidQuery && !results.length && !displayedAnswer && !error);
 
-  // Initialize query from searchParams and restore search results if search_id exists
+  // Extract URL params as individual values for stable dependencies
+  const urlQuery = urlParams.get("q")?.trim() || "";
+  const urlDeep = urlParams.get("deep") === "true";
+  const urlSearchId = urlParams.get("search_id") || "";
+  const urlSessionId = urlParams.get("session_id") || "";
+  const urlChatMode = urlParams.get("chat") === "true";
+
+  // Initialize query from URL params and restore search results if search_id exists
+  // This effect runs when URL params change (e.g., from homepage search or history click)
   useEffect(() => {
     let isCancelled = false;
 
     const initializeParams = async () => {
-      const params = await searchParams;
+      logger.log("[SearchPage] URL params:", {
+        q: urlQuery,
+        deep: urlDeep,
+        searchId: urlSearchId,
+        sessionId: urlSessionId,
+        chatMode: urlChatMode,
+      });
 
-      // Check if effect was cancelled during async operation
-      if (isCancelled) return;
-
-      const q = params?.q ? params.q.toString().trim() : "";
-      const deep = params?.deep === "true";
-      const searchId = params?.search_id ? params.search_id.toString() : "";
-      const sessionId = params?.session_id ? params.session_id.toString() : "";
-      const chatMode = params?.chat === "true";
-
-      setQuery(q);
-      setDeepThinking(deep);
-      setHasValidQuery(q.length > 0);
+      setQuery(urlQuery);
+      setDeepThinking(urlDeep);
+      setHasValidQuery(urlQuery.length > 0);
 
       // If session_id exists or chat=true, switch to Chat mode
-      if (sessionId || chatMode) {
+      if (urlSessionId || urlChatMode) {
         logger.log("[SearchPage] Switching to Chat mode");
         setTimeout(() => !isCancelled && setIsChatMode(true), 100);
       }
 
-      const targetSearchId = searchId;
-
       // Case 1: Restore from history or page refresh (has search_id)
-      if (targetSearchId) {
+      if (urlSearchId) {
         try {
-          logger.log("[SearchPage] Restoring search from ID:", targetSearchId);
-          const record = await searchAPI.getSearchRecord(targetSearchId);
+          logger.log("[SearchPage] Restoring search from ID:", urlSearchId);
+          const record = await searchAPI.getSearchRecord(urlSearchId);
 
           if (isCancelled) return;
 
@@ -142,11 +134,11 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
             restoreSearch(record);
             logger.log("[SearchPage] Successfully restored search results");
           } else {
-            logger.warn("[SearchPage] No record found for ID:", targetSearchId);
+            logger.warn("[SearchPage] No record found for ID:", urlSearchId);
             // If restore fails but we have a query, trigger new search
-            if (q) {
+            if (urlQuery) {
               logger.log("[SearchPage] Triggering new search as fallback");
-              search(q, deep);
+              search(urlQuery, urlDeep);
             }
           }
         } catch (error) {
@@ -154,15 +146,15 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
 
           logger.error("[SearchPage] Failed to restore search results:", error);
           // Fallback to new search if restore fails
-          if (q) {
+          if (urlQuery) {
             logger.log("[SearchPage] Triggering new search after restore error");
-            search(q, deep);
+            search(urlQuery, urlDeep);
           }
         }
-      } else if (q) {
+      } else if (urlQuery) {
         // Case 2: New search from homepage - trigger search automatically
-        logger.log("[SearchPage] New search triggered from homepage:", q);
-        search(q, deep);
+        logger.log("[SearchPage] New search triggered from homepage:", urlQuery);
+        search(urlQuery, urlDeep);
       }
     };
 
@@ -172,8 +164,7 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
     return () => {
       isCancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [urlQuery, urlDeep, urlSearchId, urlSessionId, urlChatMode, search, restoreSearch]); // Proper dependencies - runs when URL params change
 
   // Update URL with search_id when search completes
   useEffect(() => {
@@ -186,7 +177,7 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
   }, [searchId, query, isLoading]);
 
   // Switch to chat mode when session_id in URL changes (e.g., from history sidebar)
-  const urlSessionId = urlParams.get("session_id");
+  // Note: urlSessionId is already defined above from urlParams
   useEffect(() => {
     // Don't auto-switch if user just manually toggled
     if (preventAutoSwitch.current) {
