@@ -27,6 +27,24 @@ Quick answers? Search. Curious about something? Chat. Tough research? Agent.
 
 ---
 
+## 🎥 Fast Mode vs Deep Mode
+
+<div align="center">
+
+### ⚡ Fast Mode - Quick Answers (5 seconds)
+<img src="docs/images/demo-fast-mode.gif" alt="Fast Mode Demo" width="800">
+
+*Fast mode: Quick comparison of models*
+
+### 🧠 Deep Mode - Extended Thinking
+<img src="docs/images/demo-deep-mode.gif" alt="Deep Mode Demo" width="800">
+
+*Deep mode: In-depth analysis with multi-perspective search*
+
+</div>
+
+---
+
 ## Why Verina?
 
 **Search → Read → Chat**
