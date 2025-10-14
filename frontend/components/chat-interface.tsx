@@ -23,6 +23,7 @@ interface ChatInterfaceProps {
   promptTokens?: number;
   isResearchMode?: boolean;
   researchElapsedSeconds?: number;
+  isHILMode?: boolean; // HIL planning stage indicator
 }
 
 /**
@@ -44,6 +45,7 @@ export function ChatInterface({
   promptTokens = 0,
   isResearchMode = false,
   researchElapsedSeconds = 0,
+  isHILMode = false,
 }: ChatInterfaceProps) {
   const chatAreaRef = useRef<HTMLDivElement>(null);
   const chatInputRef = useRef<HTMLTextAreaElement>(null);
@@ -124,6 +126,17 @@ export function ChatInterface({
           <div className="relative flex h-14 items-center justify-center border-b border-gray-100 bg-white px-6">
             <h2 className="text-base font-medium text-gray-700">Deep Search Chat</h2>
 
+            {/* HIL Planning Stage Indicator */}
+            {isHILMode && !isResearchMode && (
+              <div className="absolute left-6 flex items-center gap-2 text-sm">
+                <div className="flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1">
+                  <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500"></div>
+                  <span className="font-medium text-blue-700">Planning</span>
+                </div>
+                <span className="text-xs text-gray-500">Analyzing your request</span>
+              </div>
+            )}
+
             {/* Research Mode Timer */}
             {isResearchMode && (
               <div className="absolute left-6 flex items-center gap-2 text-sm">
@@ -145,6 +158,13 @@ export function ChatInterface({
             >
               <PenSquare className="h-4 w-4" />
             </button>
+
+            {/* Loading Progress Bar - shown when waiting for LLM response */}
+            {isLoading && !isTyping && !isHILMode && !isResearchMode && (
+              <div className="absolute bottom-0 left-0 h-0.5 w-full overflow-hidden bg-gray-100">
+                <div className="h-full w-full origin-left animate-pulse bg-gradient-to-r from-transparent via-blue-500 to-transparent"></div>
+              </div>
+            )}
           </div>
           <div
             ref={chatAreaRef}

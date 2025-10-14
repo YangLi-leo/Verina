@@ -81,6 +81,7 @@ export default function SearchPage() {
     currentPromptTokens,
     isResearchMode,
     researchElapsedSeconds,
+    isHILMode, // HIL planning stage indicator
   } = useChat(chatSessionId);
 
   // Chat typing state (derived from isLoading)
@@ -96,6 +97,7 @@ export default function SearchPage() {
   const urlSearchId = urlParams.get("search_id") || "";
   const urlSessionId = urlParams.get("session_id") || "";
   const urlChatMode = urlParams.get("chat") === "true";
+  const urlAgentMode = urlParams.get("agent") === "true"; // Agent Mode from URL
 
   // Initialize query from URL params and restore search results if search_id exists
   // This effect runs when URL params change (e.g., from homepage search or history click)
@@ -119,6 +121,12 @@ export default function SearchPage() {
       if (urlSessionId || urlChatMode) {
         logger.log("[SearchPage] Switching to Chat mode");
         setTimeout(() => !isCancelled && setIsChatMode(true), 100);
+      }
+
+      // Restore Agent Mode state from URL
+      if (urlAgentMode !== isAgentMode) {
+        logger.log(`[SearchPage] Restoring Agent Mode from URL: ${urlAgentMode}`);
+        setIsAgentMode(urlAgentMode);
       }
 
       // Case 1: Restore from history or page refresh (has search_id)
@@ -164,7 +172,7 @@ export default function SearchPage() {
     return () => {
       isCancelled = true;
     };
-  }, [urlQuery, urlDeep, urlSearchId, urlSessionId, urlChatMode, search, restoreSearch]); // Proper dependencies - runs when URL params change
+  }, [urlQuery, urlDeep, urlSearchId, urlSessionId, urlChatMode, urlAgentMode, isAgentMode, search, restoreSearch]); // Proper dependencies - runs when URL params change
 
   // Update URL with search_id when search completes
   useEffect(() => {
@@ -204,6 +212,23 @@ export default function SearchPage() {
       logger.log("[SearchPage] Added new session_id to URL:", currentSessionId);
     }
   }, [currentSessionId, chatSessionId]);
+
+  // Sync Agent Mode state to URL parameter (prevent reset after message send)
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const currentAgentParam = url.searchParams.get("agent") === "true";
+
+    // Only update if state differs from URL
+    if (isAgentMode !== currentAgentParam) {
+      if (isAgentMode) {
+        url.searchParams.set("agent", "true");
+      } else {
+        url.searchParams.delete("agent");
+      }
+      window.history.replaceState({}, "", url.toString());
+      logger.log(`[SearchPage] Updated agent mode in URL: ${isAgentMode}`);
+    }
+  }, [isAgentMode]);
 
   // Rotating loading keywords (random every 5–7s)
   const [currentKeyword, setCurrentKeyword] = useState<string>("");
@@ -500,6 +525,7 @@ export default function SearchPage() {
                   promptTokens={currentPromptTokens}
                   isResearchMode={isResearchMode}
                   researchElapsedSeconds={researchElapsedSeconds}
+                  isHILMode={isHILMode}
                 />
               </div>
             )}

@@ -28,6 +28,9 @@ interface UseChatReturn {
   // Timer (for Agent Mode research phase)
   isResearchMode: boolean; // True when in Agent Mode research phase
   researchElapsedSeconds: number; // Elapsed time in seconds since research started
+
+  // Agent Mode HIL stage indicator
+  isHILMode: boolean; // True when in Agent Mode HIL (Human-in-Loop) planning stage
 }
 
 /**
@@ -53,6 +56,9 @@ export function useChat(initialSessionId?: string | null): UseChatReturn {
   const [isResearchMode, setIsResearchMode] = useState(false);
   const [researchStartTime, setResearchStartTime] = useState<number | null>(null);
   const [researchElapsedSeconds, setResearchElapsedSeconds] = useState(0);
+
+  // Agent Mode HIL (Human-in-Loop) planning stage
+  const [isHILMode, setIsHILMode] = useState(false);
 
   /**
    * Timer effect - Update elapsed seconds every second when in research mode
@@ -208,6 +214,12 @@ export function useChat(initialSessionId?: string | null): UseChatReturn {
       setError(null);
       setIsLoading(true);
 
+      // Start HIL mode if Agent Mode
+      if (mode === "agent") {
+        setIsHILMode(true);
+        logger.log("[useChat] Starting HIL planning stage");
+      }
+
       // Mark this session as currently sending
       const sendingSessionId = sessionId || `temp_${Date.now()}`;
       sendingSessionRef.current = sendingSessionId;
@@ -278,7 +290,8 @@ export function useChat(initialSessionId?: string | null): UseChatReturn {
             if (!isMountedRef.current) return;
             logger.log("[useChat] Stage switch:", stage);
             if (stage === "research") {
-              // Start timer when entering research mode
+              // Exit HIL mode, enter Research mode
+              setIsHILMode(false);
               setIsResearchMode(true);
               setResearchStartTime(Date.now());
               setResearchElapsedSeconds(0);
@@ -332,7 +345,8 @@ export function useChat(initialSessionId?: string | null): UseChatReturn {
               setCurrentPromptTokens(response.prompt_tokens);
             }
 
-            // Stop timer when response completes
+            // Stop timer and clear stages when response completes
+            setIsHILMode(false);
             setIsResearchMode(false);
             setResearchStartTime(null);
 
@@ -373,7 +387,8 @@ export function useChat(initialSessionId?: string | null): UseChatReturn {
               logger.log("Chat generation cancelled by user");
               setIsLoading(false);
 
-              // Stop timer if in research mode
+              // Stop timer and clear stages
+              setIsHILMode(false);
               setIsResearchMode(false);
               setResearchStartTime(null);
 
@@ -432,7 +447,8 @@ export function useChat(initialSessionId?: string | null): UseChatReturn {
 
         setIsLoading(false);
 
-        // Stop timer if in research mode
+        // Stop timer and clear stages
+        setIsHILMode(false);
         setIsResearchMode(false);
         setResearchStartTime(null);
 
@@ -494,6 +510,7 @@ export function useChat(initialSessionId?: string | null): UseChatReturn {
     setError(null);
     setIsLoading(false); // Reset loading state
     setCurrentPromptTokens(0); // Clear token count
+    setIsHILMode(false); // Stop HIL mode
     setIsResearchMode(false); // Stop research mode
     setResearchStartTime(null); // Clear research timer
     setResearchElapsedSeconds(0); // Reset elapsed time
@@ -512,6 +529,7 @@ export function useChat(initialSessionId?: string | null): UseChatReturn {
     currentPromptTokens,
     isResearchMode,
     researchElapsedSeconds,
+    isHILMode,
   };
 }
 
