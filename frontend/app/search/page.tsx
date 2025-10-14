@@ -40,6 +40,12 @@ export default function SearchPage() {
   // Ref to track last URL agent param to avoid sync loops
   const lastUrlAgentMode = useRef<boolean | null>(null);
 
+  // Ref to track last loaded searchId to prevent unnecessary reloads
+  const lastLoadedSearchId = useRef<string | null>(null);
+
+  // Ref to preserve last chat session_id when switching between modes
+  const lastChatSessionId = useRef<string | null>(null);
+
   // Use search hook (old version - no multi-session support)
   const {
     search: originalSearch,
@@ -135,37 +141,44 @@ export default function SearchPage() {
 
       // Case 1: Restore from history or page refresh (has search_id)
       if (urlSearchId) {
-        try {
-          logger.log("[SearchPage] Restoring search from ID:", urlSearchId);
-          const record = await searchAPI.getSearchRecord(urlSearchId);
+        // Only restore if this is a different search_id than last loaded
+        if (lastLoadedSearchId.current !== urlSearchId) {
+          try {
+            logger.log("[SearchPage] Restoring search from ID:", urlSearchId);
+            const record = await searchAPI.getSearchRecord(urlSearchId);
 
-          if (isCancelled) return;
+            if (isCancelled) return;
 
-          if (record) {
-            // Restore search results from backend
-            restoreSearch(record);
-            logger.log("[SearchPage] Successfully restored search results");
-          } else {
-            logger.warn("[SearchPage] No record found for ID:", urlSearchId);
-            // If restore fails but we have a query, trigger new search
+            if (record) {
+              // Restore search results from backend
+              restoreSearch(record);
+              lastLoadedSearchId.current = urlSearchId;
+              logger.log("[SearchPage] Successfully restored search results");
+            } else {
+              logger.warn("[SearchPage] No record found for ID:", urlSearchId);
+              // If restore fails but we have a query, trigger new search
+              if (urlQuery) {
+                logger.log("[SearchPage] Triggering new search as fallback");
+                search(urlQuery, urlDeep);
+              }
+            }
+          } catch (error) {
+            if (isCancelled) return;
+
+            logger.error("[SearchPage] Failed to restore search results:", error);
+            // Fallback to new search if restore fails
             if (urlQuery) {
-              logger.log("[SearchPage] Triggering new search as fallback");
+              logger.log("[SearchPage] Triggering new search after restore error");
               search(urlQuery, urlDeep);
             }
           }
-        } catch (error) {
-          if (isCancelled) return;
-
-          logger.error("[SearchPage] Failed to restore search results:", error);
-          // Fallback to new search if restore fails
-          if (urlQuery) {
-            logger.log("[SearchPage] Triggering new search after restore error");
-            search(urlQuery, urlDeep);
-          }
+        } else {
+          logger.log("[SearchPage] Skipping restore - same search_id already loaded:", urlSearchId);
         }
       } else if (urlQuery) {
         // Case 2: New search from homepage - trigger search automatically
         logger.log("[SearchPage] New search triggered from homepage:", urlQuery);
+        lastLoadedSearchId.current = null; // Clear tracking for new searches
         search(urlQuery, urlDeep);
       }
     };
@@ -205,17 +218,24 @@ export default function SearchPage() {
 
   // Update URL with session_id only when creating a NEW chat (no existing session_id in URL)
   useEffect(() => {
+    // Don't auto-add session_id if user just manually toggled to search mode
+    if (preventAutoSwitch.current) {
+      logger.log("[SearchPage] Skipping session_id URL update due to manual toggle");
+      return;
+    }
+
     // Only update URL if:
     // 1. We have a currentSessionId from useChat
     // 2. There's NO session_id in the URL yet (new chat created)
     // 3. currentSessionId is different from what's in URL
-    if (currentSessionId && !chatSessionId && currentSessionId !== chatSessionId) {
+    // 4. We're in chat mode (user wants to be in chat)
+    if (currentSessionId && !chatSessionId && currentSessionId !== chatSessionId && isChatMode) {
       const url = new URL(window.location.href);
       url.searchParams.set("session_id", currentSessionId);
       window.history.replaceState({}, "", url.toString());
       logger.log("[SearchPage] Added new session_id to URL:", currentSessionId);
     }
-  }, [currentSessionId, chatSessionId]);
+  }, [currentSessionId, chatSessionId, isChatMode]);
 
   // Sync Agent Mode state to URL parameter (prevent reset after message send)
   useEffect(() => {
@@ -272,14 +292,28 @@ export default function SearchPage() {
     preventAutoSwitch.current = true;
     logger.log("[SearchPage] Manual toggle detected, preventing auto-switch");
 
-    // If switching from chat to search mode, clear session_id from URL
+    const url = new URL(window.location.href);
+
+    // If switching from chat to search mode, preserve session_id and clear it from URL
     if (isChatMode) {
-      const url = new URL(window.location.href);
+      const currentSessionId = url.searchParams.get("session_id");
+      if (currentSessionId) {
+        lastChatSessionId.current = currentSessionId;
+        logger.log("[SearchPage] Saved chat session_id for later restore:", currentSessionId);
+      }
       url.searchParams.delete("session_id");
       url.searchParams.delete("chat");
       // Keep search_id and q if they exist
-      window.history.pushState({}, "", url.toString());
+      router.push(url.pathname + url.search);
       logger.log("[SearchPage] Cleared session_id from URL when switching to search mode");
+    } else {
+      // Switching from search to chat mode - restore previous session if exists
+      if (lastChatSessionId.current) {
+        url.searchParams.set("session_id", lastChatSessionId.current);
+        router.push(url.pathname + url.search);
+        logger.log("[SearchPage] Restored previous chat session_id:", lastChatSessionId.current);
+      }
+      // If no previous session, it will create a new one automatically
     }
 
     setTimeout(() => {
@@ -307,6 +341,12 @@ export default function SearchPage() {
       // Cancel current search (useSearchAPI will handle this via instanceId)
     }
 
+    // Stop ongoing chat if switching from chat mode
+    if (isChatMode && isChatLoading) {
+      logger.log("[SearchPage] Stopping ongoing chat before switching to search");
+      stopGeneration();
+    }
+
     // Load the search record directly (don't rely on URL change effect)
     try {
       logger.log("[SearchPage] Loading search from history click:", clickedSearchId);
@@ -319,16 +359,19 @@ export default function SearchPage() {
         setQuery(queryText);
         setHasValidQuery(queryText.length > 0);
 
-        // Update URL (this won't trigger Effect 1 because searchId will already match)
+        // Update URL - remove session_id and chat params to ensure we're in search mode
         const url = new URL(window.location.href);
         url.searchParams.set("search_id", clickedSearchId);
         url.searchParams.set("q", queryText);
-        // Keep session_id if exists
-        const currentSessionId = urlParams.get("session_id");
-        if (currentSessionId) {
-          url.searchParams.set("session_id", currentSessionId);
+        url.searchParams.delete("session_id"); // Always remove session_id when viewing search results
+        url.searchParams.delete("chat");
+        router.push(url.pathname + url.search);
+
+        // Switch to search mode if currently in chat mode
+        if (isChatMode) {
+          logger.log("[SearchPage] Switching from chat to search mode");
+          setTimeout(() => setIsChatMode(false), 100);
         }
-        window.history.pushState({}, "", url.toString());
 
         logger.log("[SearchPage] ✅ Loaded search from history");
       }
@@ -345,6 +388,10 @@ export default function SearchPage() {
       logger.log("[SearchPage] Stopping ongoing chat before switching to chat:", chatId);
       stopGeneration(); // Stop current chat session
     }
+
+    // Save this chat session_id for later restore
+    lastChatSessionId.current = chatId;
+    logger.log("[SearchPage] Saved chat session_id from history:", chatId);
 
     // Build URL preserving current search_id if exists
     const url = new URL(window.location.href);
@@ -440,7 +487,7 @@ export default function SearchPage() {
                   }`}
                   aria-label="AI answers"
                 >
-                  {hasValidQuery ? (
+                  {hasValidQuery || displayedAnswer || results.length > 0 ? (
                     <AnimatedMount>
                       <MainSearchResults
                         isLoading={isLoading}
