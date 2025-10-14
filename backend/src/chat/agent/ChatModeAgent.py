@@ -207,6 +207,11 @@ class ChatModeAgent(BaseAgent):
                 if self.chat_service and self.chat_service.cancel_flags.get(session_id):
                     logger.info(f"[Chat Mode] Cancelled by user at iteration {iteration}")
 
+                    # Clean workspace on cancellation
+                    if self.workspace_dir and self.workspace_dir.exists():
+                        logger.info("[Chat Cancellation] Cleaning workspace")
+                        self._clean_workspace_after_chat()
+
                     final_response = "Response stopped by user."
 
                     # Clear the cancel flag
@@ -337,8 +342,31 @@ class ChatModeAgent(BaseAgent):
             prompt_tokens=last_prompt_tokens if last_prompt_tokens > 0 else None,
         )
 
+        # Clean workspace after chat completion
+        if self.workspace_dir and self.workspace_dir.exists():
+            self._clean_workspace_after_chat()
+
         # Yield complete signal
         yield {"type": "complete", "data": chat_response.model_dump(mode='json')}
+
+    def _clean_workspace_after_chat(self):
+        """Clean workspace directory after chat completion.
+
+        This removes all temporary files from the chat session:
+        - cache/ (downloaded articles)
+        - analysis/ (Python execution outputs)
+
+        The workspace will be recreated fresh for the next chat session.
+        """
+        import shutil
+
+        try:
+            if self.workspace_dir and self.workspace_dir.exists():
+                logger.info(f"[Cleanup] Removing workspace after chat completion: {self.workspace_dir}")
+                shutil.rmtree(self.workspace_dir)
+                logger.info("[Cleanup] Workspace cleaned successfully")
+        except Exception as e:
+            logger.error(f"[Cleanup] Failed to clean workspace: {e}", exc_info=True)
 
     def cleanup(self):
         """Cleanup all resources including MCP connections."""
