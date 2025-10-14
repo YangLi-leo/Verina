@@ -15,7 +15,7 @@ services:
     profiles: ["web"]
     build:
       context: ../../frontend
-      dockerfile: ../infrastructure/docker/Dockerfile.frontend
+      dockerfile: ../infrastructure/docker/Dockerfile.frontend.dev
     ports:
       - "3000:3000"
     environment:
@@ -25,7 +25,6 @@ services:
       - ../../frontend:/app
       - /app/node_modules
       - /app/.next
-    command: npm run dev
     depends_on:
       - backend
     networks:

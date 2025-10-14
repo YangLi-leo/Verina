@@ -1,0 +1,21 @@
+# Development Dockerfile for Verina Frontend (Dev Mode)
+# Simple setup for hot module replacement with volume mounting
+
+FROM node:20-alpine
+WORKDIR /app
+
+# Install pnpm globally
+RUN npm install -g pnpm@latest
+
+# Copy dependency manifests
+COPY package.json pnpm-lock.yaml* ./
+
+# Install dependencies
+RUN pnpm install
+
+# Source code will be mounted via volume, no need to COPY
+
+EXPOSE 3000
+
+# Run development server
+CMD ["pnpm", "run", "dev"]
