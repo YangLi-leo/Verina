@@ -23,7 +23,7 @@ Quick answers? Search. Curious about something? Chat. Tough research? Agent.
 
 ---
 
-## 🎥 Fast Mode vs Deep Mode
+## 🎥 Three Modes for Every Need
 
 <table>
   <tr>
@@ -36,6 +36,15 @@ Quick answers? Search. Curious about something? Chat. Tough research? Agent.
       <h3 align="center">🧠 Deep Mode</h3>
       <p align="center"><i>Extended thinking & multi-perspective analysis</i></p>
       <img src="docs/images/demo-deep-mode.gif" alt="Deep Mode Demo" width="100%">
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2">
+      <h3 align="center">💬 Chat Mode</h3>
+      <p align="center"><i>Interactive conversation with context</i></p>
+      <div align="center">
+        <img src="docs/images/chat-demo.gif" alt="Chat Mode Demo" width="70%">
+      </div>
     </td>
   </tr>
 </table>
