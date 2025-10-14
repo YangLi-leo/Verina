@@ -38,16 +38,19 @@ Quick answers? Search. Curious about something? Chat. Tough research? Agent.
       <img src="docs/images/demo-deep-mode.gif" alt="Deep Mode Demo" width="100%">
     </td>
   </tr>
-  <tr>
-    <td colspan="2">
-      <h3 align="center">💬 Chat Mode</h3>
-      <p align="center"><i>Interactive conversation with context</i></p>
-      <div align="center">
-        <img src="docs/images/chat-demo.gif" alt="Chat Mode Demo" width="70%">
-      </div>
-    </td>
-  </tr>
 </table>
+
+<div align="center" style="margin-top: 20px;">
+  <table>
+    <tr>
+      <td width="50%">
+        <h3 align="center">💬 Chat Mode</h3>
+        <p align="center"><i>Interactive conversation with context</i></p>
+        <img src="docs/images/chat-demo.gif" alt="Chat Mode Demo" width="100%">
+      </td>
+    </tr>
+  </table>
+</div>
 
 ### 🤖 Agent Mode: Long-Context Research with Visual Reports
 
